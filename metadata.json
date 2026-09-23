@@ -1,6 +1,6 @@
 {
-  "name": "Test de Temperamentos - Autocontrol y Manejo del Enojo",
-  "description": "Aplicación educativa y minimalista para el autoconocimiento de temperamentos, forja de carácter y manejo constructivo de la ira en jóvenes.",
+  "name": "Los Cuatro Temperamentos y la Forja del Carácter",
+  "description": "Aplicación interactiva y formativa basada en la psicología tomista del Dr. Jorge Hagemann y «El Joven de Carácter» de Mons. Tihamér Tóth para el autoconocimiento, la virtud y la educación de la voluntad.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,20 +1,22 @@
-export type TemperamentType = 'sanguineo' | 'colerico' | 'melancolico' | 'flematico';
+export type TemperamentType = 'colerico' | 'melancolico' | 'sanguineo' | 'flematico';
 
 export type OptionKey = 'A' | 'B' | 'C' | 'D';
 
-export type AppView = 'theory' | 'glossary' | 'wizard' | 'results' | 'landing' | 'admin';
+export type AppView = 'theory' | 'glossary' | 'wizard' | 'results' | 'landing' | 'admin' | 'soulmap';
 
 export interface QuestionOption {
   key: OptionKey;
   temperament: TemperamentType;
   text: string;
   behavioralNote: string;
+  theologicalNote?: string;
 }
 
 export interface Question {
   id: number;
   category: string;
   scenario: string;
+  spiritualContext?: string;
   options: QuestionOption[];
 }
 
@@ -25,12 +27,34 @@ export interface MixedTemperamentDetail {
   secondary: TemperamentType;
   description: string;
   balanceAdvice: string;
+  theologicalHarmony: string;
 }
 
 export interface TemperamentProfile {
   id: TemperamentType;
   name: string;
+  theologicalTitle: string;
   tagline: string;
+  appetiteType: string;
+  appetiteCategory: 'irascible' | 'concupiscible';
+  theologicalDefinition: string;
+  naturalAttribute: string; // Qué capacidades bellas le dio Dios a esta persona en su naturaleza
+  dangerZone: { // El Combate y Pecados Capitales Dominantes
+    capitalSins: string[];
+    description: string;
+    combatNote: string;
+  };
+  virtuePath: { // El Camino de Crecimiento y Virtudes Evangélicas
+    evangelicalVirtues: string[];
+    christModelQuote: string;
+    description: string;
+    scriptureReference: string;
+  };
+  cicReferences: {
+    code: string;
+    topic: string;
+    summary: string;
+  }[];
   elementSymbol: string;
   nature: string;
   excitability: {
@@ -90,6 +114,7 @@ export interface PracticalExampleReaction {
   temperament?: TemperamentType;
   reaction: string;
   verdict?: string;
+  theologicalSpiritualInsight?: string;
 }
 
 export interface PracticalExample {
@@ -109,6 +134,7 @@ export interface PersonDimension {
   characterForgingGoal: string;
   youthPracticalExample: string;
   iconName: string;
+  cicAnchor: string;
 }
 
 export interface MeasurementCriterion {
@@ -135,6 +161,11 @@ export interface TheoryChapter {
   practicalExample: PracticalExample;
   keyTakeaways: string[];
   youthChallenge: string;
+  theologicalFoundation?: {
+    cicNumber: string;
+    stThomasConcept: string;
+    scriptureAnchor: string;
+  };
 }
 
 export interface AppContentConfig {
@@ -147,5 +178,3 @@ export interface AppContentConfig {
   };
   questions: Question[];
 }
-
-

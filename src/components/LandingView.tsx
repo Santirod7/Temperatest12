@@ -2,7 +2,20 @@ import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { AppContentConfig } from '../types/temperament';
 import { TEMPERAMENT_PROFILES } from '../data/temperamentsData';
-import { ArrowRight, Compass, ShieldCheck, MessageSquare, Flame, Wind, Mountain, Waves, Sparkles, Sliders } from 'lucide-react';
+import {
+  ArrowRight,
+  Compass,
+  ShieldCheck,
+  MessageSquare,
+  Flame,
+  Wind,
+  Mountain,
+  Waves,
+  Sliders,
+  BookOpen,
+  Layers,
+  FileText,
+} from 'lucide-react';
 
 interface LandingViewProps {
   config: AppContentConfig;
@@ -10,6 +23,8 @@ interface LandingViewProps {
   onOpenCustomizer: () => void;
   savedAnswersCount: number;
   onResumeTest?: () => void;
+  onGoToTheory?: () => void;
+  onGoToGlossary?: () => void;
 }
 
 export const LandingView: React.FC<LandingViewProps> = ({
@@ -18,6 +33,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onOpenCustomizer,
   savedAnswersCount,
   onResumeTest,
+  onGoToTheory,
+  onGoToGlossary,
 }) => {
   const { colorContrastClasses, theme, setBgColor, setFontFamily } = useTheme();
 
@@ -134,6 +151,65 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <span aria-hidden="true">·</span>
           <span>Privacidad total en tu dispositivo</span>
         </div>
+      </section>
+
+      {/* SECCIONES DIDÁCTICAS: TEORÍA Y GLOSARIO */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {onGoToTheory && (
+          <div
+            onClick={onGoToTheory}
+            className={`p-5 rounded-xl border transition-all cursor-pointer group ${colorContrastClasses.cardBg} ${colorContrastClasses.cardBorder} hover:border-indigo-500/50 hover:shadow-md`}
+          >
+            <div className="flex items-center gap-3 mb-2.5">
+              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className={`text-sm font-bold group-hover:text-indigo-400 transition-colors ${colorContrastClasses.textPrimary}`}>
+                  Teoría e Historia
+                </h3>
+                <span className={`text-[11px] ${colorContrastClasses.textMuted}`}>
+                  Hipócrates, Galeno y Mons. Tóth
+                </span>
+              </div>
+            </div>
+            <p className={`text-xs leading-relaxed mb-3 ${colorContrastClasses.textSecondary}`}>
+              Explora las raíces fisiológicas de los cuatro humores, la diferencia crucial entre el temperamento innato y el carácter esculpido, y las directrices de autoeducación de la voluntad.
+            </p>
+            <div className="flex items-center gap-1 text-xs font-semibold text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+              <span>Leer Tratado Formativo</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </div>
+        )}
+
+        {onGoToGlossary && (
+          <div
+            onClick={onGoToGlossary}
+            className={`p-5 rounded-xl border transition-all cursor-pointer group ${colorContrastClasses.cardBg} ${colorContrastClasses.cardBorder} hover:border-indigo-500/50 hover:shadow-md`}
+          >
+            <div className="flex items-center gap-3 mb-2.5">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                <Layers className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className={`text-sm font-bold group-hover:text-emerald-400 transition-colors ${colorContrastClasses.textPrimary}`}>
+                  Glosario de Temperamentos
+                </h3>
+                <span className={`text-[11px] ${colorContrastClasses.textMuted}`}>
+                  Fichas individuales completas
+                </span>
+              </div>
+            </div>
+            <p className={`text-xs leading-relaxed mb-3 ${colorContrastClasses.textSecondary}`}>
+              Consulta el análisis exhaustivo de cada temperamento: fisiología de reacción, mirada y paso, virtudes, defectos ante la ofensa, y reglas de forja de carácter.
+            </p>
+            <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 group-hover:translate-x-0.5 transition-transform">
+              <span>Explorar Fichas del Glosario</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </div>
+        )}
       </section>
 
       {/* QUICK VISUAL CUSTOMIZATION PANEL IN PORTADA */}

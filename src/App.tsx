@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Header } from './components/Header';
 import { LandingView } from './components/LandingView';
+import { TheoryView } from './components/TheoryView';
+import { GlossaryView } from './components/GlossaryView';
 import { WizardView } from './components/WizardView';
 import { ResultsView } from './components/ResultsView';
 import { AdminPanel } from './components/AdminPanel';
 import { ThemeCustomizer } from './components/ThemeCustomizer';
 import {
   AppContentConfig,
+  AppView,
   OptionKey,
   TemperamentType,
   TestScore,
@@ -16,6 +19,51 @@ import { INITIAL_CONTENT_CONFIG } from './data/temperamentsData';
 
 const CONFIG_STORAGE_KEY = 'temperamentos_app_config_v1';
 const ANSWERS_STORAGE_KEY = 'temperamentos_app_answers_v1';
+
+// Helper to compute score from answers and config
+function calculateScore(answers: Record<number, OptionKey>, questions = INITIAL_CONTENT_CONFIG.questions): TestScore {
+  const counts: Record<TemperamentType, number> = {
+    sanguineo: 0,
+    colerico: 0,
+    melancolico: 0,
+    flematico: 0,
+  };
+
+  let total = 0;
+
+  questions.forEach((q) => {
+    const chosenKey = answers[q.id];
+    if (chosenKey) {
+      const option = q.options.find((opt) => opt.key === chosenKey);
+      if (option) {
+        counts[option.temperament] += 1;
+        total += 1;
+      }
+    }
+  });
+
+  const safeTotal = total > 0 ? total : 1;
+
+  const percentages: Record<TemperamentType, number> = {
+    sanguineo: Math.round((counts.sanguineo / safeTotal) * 100),
+    colerico: Math.round((counts.colerico / safeTotal) * 100),
+    melancolico: Math.round((counts.melancolico / safeTotal) * 100),
+    flematico: Math.round((counts.flematico / safeTotal) * 100),
+  };
+
+  // Sort by count descending
+  const sorted = (Object.keys(counts) as TemperamentType[]).sort((a, b) => counts[b] - counts[a]);
+  const primary = sorted[0] || 'colerico';
+  const secondary = sorted[1] || 'sanguineo';
+
+  return {
+    counts,
+    percentages,
+    primary,
+    secondary,
+    totalAnswered: total,
+  };
+}
 
 export function MainApp() {
   const { colorContrastClasses } = useTheme();
@@ -37,7 +85,7 @@ export function MainApp() {
   });
 
   // Navigation view
-  const [currentView, setCurrentView] = useState<'landing' | 'wizard' | 'results' | 'admin'>('landing');
+  const [currentView, setCurrentView] = useState<AppView>('landing');
 
   // Interactive Wizard state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -57,7 +105,20 @@ export function MainApp() {
   const [isCustomizerOpen, setIsCustomizerOpen] = useState<boolean>(false);
 
   // Computed score
-  const [score, setScore] = useState<TestScore | null>(null);
+  const [score, setScore] = useState<TestScore | null>(() => {
+    try {
+      const saved = localStorage.getItem(ANSWERS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Object.keys(parsed).length >= 16) {
+          return calculateScore(parsed, INITIAL_CONTENT_CONFIG.questions);
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading initial score', e);
+    }
+    return null;
+  });
 
   // Sync config to localStorage
   const handleSaveConfig = (newConfig: AppContentConfig) => {
@@ -87,55 +148,10 @@ export function MainApp() {
     }
   }, [userAnswers]);
 
-  // Compute test score algorithm
-  const computeScore = (answers: Record<number, OptionKey>): TestScore => {
-    const counts: Record<TemperamentType, number> = {
-      sanguineo: 0,
-      colerico: 0,
-      melancolico: 0,
-      flematico: 0,
-    };
-
-    const questions = config.questions;
-    let total = 0;
-
-    questions.forEach((q) => {
-      const chosenKey = answers[q.id];
-      if (chosenKey) {
-        const option = q.options.find((opt) => opt.key === chosenKey);
-        if (option) {
-          counts[option.temperament] += 1;
-          total += 1;
-        }
-      }
-    });
-
-    const safeTotal = total > 0 ? total : 1;
-
-    const percentages: Record<TemperamentType, number> = {
-      sanguineo: Math.round((counts.sanguineo / safeTotal) * 100),
-      colerico: Math.round((counts.colerico / safeTotal) * 100),
-      melancolico: Math.round((counts.melancolico / safeTotal) * 100),
-      flematico: Math.round((counts.flematico / safeTotal) * 100),
-    };
-
-    // Sort by count descending
-    const sorted = (Object.keys(counts) as TemperamentType[]).sort((a, b) => counts[b] - counts[a]);
-    const primary = sorted[0] || 'colerico';
-    const secondary = sorted[1] || 'sanguineo';
-
-    return {
-      counts,
-      percentages,
-      primary,
-      secondary,
-      totalAnswered: total,
-    };
-  };
-
   const handleStartTest = () => {
     setUserAnswers({});
     setCurrentQuestionIndex(0);
+    setScore(null);
     setCurrentView('wizard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -170,7 +186,7 @@ export function MainApp() {
   };
 
   const handleFinishTest = () => {
-    const computed = computeScore(userAnswers);
+    const computed = calculateScore(userAnswers, config.questions);
     setScore(computed);
     setCurrentView('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -195,11 +211,17 @@ export function MainApp() {
       <Header
         currentView={currentView}
         onNavigate={(view) => {
+          if (view === 'results' && !score && savedAnswersCount >= 16) {
+            const computed = calculateScore(userAnswers, config.questions);
+            setScore(computed);
+          }
           setCurrentView(view);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
         onResetTest={handleRestart}
+        hasScore={Boolean(score) || savedAnswersCount >= 16}
+        savedAnswersCount={savedAnswersCount}
       />
 
       {/* Main View Router */}
@@ -211,6 +233,34 @@ export function MainApp() {
             onOpenCustomizer={() => setIsCustomizerOpen(true)}
             savedAnswersCount={savedAnswersCount}
             onResumeTest={savedAnswersCount > 0 ? handleResumeTest : undefined}
+            onGoToTheory={() => {
+              setCurrentView('theory');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onGoToGlossary={() => {
+              setCurrentView('glossary');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {currentView === 'theory' && (
+          <TheoryView
+            onStartTest={handleStartTest}
+            onGoToGlossary={() => {
+              setCurrentView('glossary');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {currentView === 'glossary' && (
+          <GlossaryView
+            onStartTest={handleStartTest}
+            onGoToTheory={() => {
+              setCurrentView('theory');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
           />
         )}
 
@@ -227,8 +277,19 @@ export function MainApp() {
           />
         )}
 
-        {currentView === 'results' && score && (
-          <ResultsView score={score} onRestart={handleRestart} />
+        {currentView === 'results' && (score || savedAnswersCount >= 16) && (
+          <ResultsView
+            score={score || calculateScore(userAnswers, config.questions)}
+            onRestart={handleRestart}
+            onGoToTheory={() => {
+              setCurrentView('theory');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onGoToGlossary={() => {
+              setCurrentView('glossary');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         )}
 
         {currentView === 'admin' && (
@@ -246,16 +307,36 @@ export function MainApp() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <span className={colorContrastClasses.textMuted}>
-              Instrumento Educativo de Formación Ética y Autocontrol
+              Instrumento Educativo de Formación Ética, Autocontrol y Manejo de la Ira
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap justify-center">
+            <button
+              onClick={() => {
+                setCurrentView('theory');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`hover:underline cursor-pointer ${colorContrastClasses.textMuted}`}
+            >
+              Teoría e Historia
+            </button>
+            <span className={colorContrastClasses.textMuted} aria-hidden="true">·</span>
+            <button
+              onClick={() => {
+                setCurrentView('glossary');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`hover:underline cursor-pointer ${colorContrastClasses.textMuted}`}
+            >
+              Glosario
+            </button>
+            <span className={colorContrastClasses.textMuted} aria-hidden="true">·</span>
             <button
               onClick={() => setIsCustomizerOpen(true)}
               className={`hover:underline cursor-pointer ${colorContrastClasses.textMuted}`}
             >
-              Ajustar Fondo y Tipografía
+              Fondo y Tipografía
             </button>
             <span className={colorContrastClasses.textMuted} aria-hidden="true">·</span>
             <button

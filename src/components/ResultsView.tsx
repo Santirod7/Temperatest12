@@ -21,9 +21,16 @@ import {
 interface ResultsViewProps {
   score: TestScore;
   onRestart: () => void;
+  onGoToTheory?: () => void;
+  onGoToGlossary?: () => void;
 }
 
-export const ResultsView: React.FC<ResultsViewProps> = ({ score, onRestart }) => {
+export const ResultsView: React.FC<ResultsViewProps> = ({
+  score,
+  onRestart,
+  onGoToTheory,
+  onGoToGlossary,
+}) => {
   const { colorContrastClasses } = useTheme();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'anger' | 'words' | 'rules' | 'all'>('profile');
@@ -457,17 +464,61 @@ ${primaryProfile.characterForgingRules.map((r, i) => `${i + 1}. ${r.ruleTitle}: 
       )}
 
       {/* FOOTER CALL TO ACTION (No-print) */}
-      <div className="no-print pt-6 border-t border-inherit flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className={`text-xs ${colorContrastClasses.textMuted} text-center sm:text-left`}>
-          Puedes repetir este test en el futuro para medir tu progreso en el autocontrol y dominio de la ira.
-        </p>
-        <button
-          onClick={onRestart}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition-colors shadow-xs"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Reiniciar y Volver al Inicio</span>
-        </button>
+      <div className="no-print pt-6 border-t border-inherit space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {onGoToTheory && (
+            <button
+              onClick={onGoToTheory}
+              className={`p-3.5 rounded-xl border flex items-center justify-between transition-all cursor-pointer ${colorContrastClasses.cardBg} ${colorContrastClasses.cardBorder} hover:border-indigo-500/40`}
+            >
+              <div className="flex items-center gap-2.5 text-left">
+                <BookOpen className="w-4 h-4 text-indigo-400" />
+                <div>
+                  <span className={`text-xs font-bold block ${colorContrastClasses.textPrimary}`}>
+                    Estudiar Teoría e Historia
+                  </span>
+                  <span className={`text-[11px] ${colorContrastClasses.textMuted}`}>
+                    Profundiza en la forja de la voluntad y los humores
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-semibold text-indigo-400">Leer &rarr;</span>
+            </button>
+          )}
+
+          {onGoToGlossary && (
+            <button
+              onClick={onGoToGlossary}
+              className={`p-3.5 rounded-xl border flex items-center justify-between transition-all cursor-pointer ${colorContrastClasses.cardBg} ${colorContrastClasses.cardBorder} hover:border-emerald-500/40`}
+            >
+              <div className="flex items-center gap-2.5 text-left">
+                <Shield className="w-4 h-4 text-emerald-400" />
+                <div>
+                  <span className={`text-xs font-bold block ${colorContrastClasses.textPrimary}`}>
+                    Consultar Glosario Completo
+                  </span>
+                  <span className={`text-[11px] ${colorContrastClasses.textMuted}`}>
+                    Revisa las fichas de los 4 temperamentos y sus mezclas
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-semibold text-emerald-400">Ver &rarr;</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+          <p className={`text-xs ${colorContrastClasses.textMuted} text-center sm:text-left`}>
+            Puedes repetir este test en el futuro para medir tu progreso en el autocontrol y dominio de la ira.
+          </p>
+          <button
+            onClick={onRestart}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition-colors shadow-xs cursor-pointer"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Reiniciar y Volver al Inicio</span>
+          </button>
+        </div>
       </div>
     </div>
   );

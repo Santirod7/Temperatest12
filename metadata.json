@@ -1,0 +1,6 @@
+{
+  "name": "Test de Temperamentos - Autocontrol y Manejo del Enojo",
+  "description": "Aplicación educativa y minimalista para el autoconocimiento de temperamentos, forja de carácter y manejo constructivo de la ira en jóvenes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
